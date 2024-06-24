@@ -3,9 +3,39 @@ const fs = require("fs");
 const csvToJson = require("../../services/csvExtractor");
 const { parse } = require('json2csv');
 
+function isBlank(str) {
+    return !str.trim().length;
+}
+// Function to group and sort by PRIMARY key
+function groupByPrimaryKey(arr) {
+    const grouped = {};
+
+    arr.forEach(item => {
+        const primaryKey = item["PRIMARY"].trim();
+        if (!grouped[primaryKey]) {
+            grouped[primaryKey] = {
+                PRIMARY_KEY: item["PRIMARY KEY"],
+                IMAGE_NAME: item["IMAGE_NAME"],
+                DATA: []
+            };
+        }
+        const dataItem = { ...item };
+        delete dataItem["PRIMARY"];
+        delete dataItem["PRIMARY KEY"];
+        delete dataItem["IMAGE_NAME"];
+        grouped[primaryKey].DATA.push(dataItem);
+    });
+
+    return Object.keys(grouped).map(key => ({
+        PRIMARY: key,
+        PRIMARY_KEY: grouped[key].PRIMARY_KEY,
+        IMAGE_NAME: grouped[key].IMAGE_NAME,
+        DATA: grouped[key].DATA
+    }));
+}
 
 const compareCsv = async (req, res) => {
-    // console.log("entered");
+
     try {
         // Access other form data parameters
         const { firstInputFileName, secondInputFileName, primaryKey, skippingKey, imageColName, formFeilds } = req.body;
@@ -19,7 +49,16 @@ const compareCsv = async (req, res) => {
 
         const diff = [];
 
-
+        for (let i = 0; i < f1.length; i++) {
+            if (isBlank(f1[i][primaryKey])) {
+                return res.status(501).send({ err: "Primary key cannot be blank" });
+            }
+        }
+        for (let j = 0; j < f2.length; j++) {
+            if (isBlank(f2[j][primaryKey])) {
+                return res.status(501).send({ err: "Primary key cannot be blank" });
+            }
+        }
 
 
         for (let i = 0; i < f1.length; i++) {
@@ -68,6 +107,25 @@ const compareCsv = async (req, res) => {
 
         }
 
+
+        // // Process the data into a format suitable for a CSV
+        // const rows = [];
+
+        // jsonData.forEach(item => {
+        //     item.DATA.forEach(entry => {
+        //         rows.push({
+        //             PRIMARY: item.PRIMARY,
+        //             PRIMARY_KEY: item.PRIMARY_KEY,
+        //             IMAGE_NAME: item.IMAGE_NAME,
+        //             COLUMN_NAME: entry.COLUMN_NAME,
+        //             FILE_1_DATA: entry.FILE_1_DATA,
+        //             FILE_2_DATA: entry.FILE_2_DATA,
+        //             CORRECTED: entry.CORRECTED.join(', '),
+        //             'CORRECTED BY': entry['CORRECTED BY']
+        //         });
+        //     });
+        // });
+
         const csvData = parse(diff);
         // const csvData = parse(arr)
         const correctedCsv = parse(f1);
@@ -111,10 +169,12 @@ const compareCsv = async (req, res) => {
         // Set the content disposition header to trigger download
         res.set('Content-Disposition', 'attachment; filename="data.csv"');
 
+
+        const groupedArray = groupByPrimaryKey(diff);
         // Send the CSV data as the response
         res.status(200).send({
             csvFile: f1,
-            data: diff,
+            data: groupedArray,
             errorFilePath: errorFilePath,
             correctedFilePath: correctionFilePath,
             imageDirectoryName: omrImages
