@@ -23,6 +23,8 @@ const updatedDetails = require("../controllers/Templete/updatedDetails");
 const userDetails = require("../controllers/Templete/userDetails");
 const editAssignedTask = require("../controllers/Templete/editAssignedTask");
 const getMappedData = require("../controllers/Templete/getMappedData");
+const postFormCheckedData = require("../controllers/Templete/postFormcheckedData");
+const getFormCheckedData = require("../controllers/Templete/getFormCheckedData");
 const router = express.Router();
 
 router.get("/get/templetedata/:id", authMiddleware, getTempleteData); //templeteId
@@ -32,6 +34,7 @@ router.get("/get/task/:id", authMiddleware, getTask); //user
 router.get("/download/csv/:id", downloadCsv); //file Id
 router.get("/user/details/:id", userDetails); //userId
 router.get("/get/mappeddata/:id", getMappedData); //templateId
+router.get("/formcheckeddata", authMiddleware, getFormCheckedData); //fileId
 
 router.post("/updated/details", authMiddleware, updatedDetails); //userId
 router.post("/edit/template/:id", authMiddleware, editTemplateData); //template Id
@@ -49,5 +52,6 @@ router.post("/delete/duplicate", authMiddleware, deleteDuplicateData);
 router.post("/update/duplicatedata", authMiddleware, editDuplicateData);
 router.post("/delete/template/:id", authMiddleware, deleteTemplate); //templateId
 router.post("/edit/assigned/task", authMiddleware, editAssignedTask); //assignedTaskId //userId
+router.post("/formcheckeddata", authMiddleware, postFormCheckedData); //fileId
 
 module.exports = router;

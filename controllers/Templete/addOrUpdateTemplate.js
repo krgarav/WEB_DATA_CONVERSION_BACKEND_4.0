@@ -74,7 +74,6 @@ const addOrUpdateTemplate = async (req, res) => {
 
     const { templateData, metaData, templateId } = JSON.parse(req.body.data);
 
-
     if (!templateData || !templateData.name || !templateData.pageCount) {
       return res
         .status(400)
@@ -102,7 +101,9 @@ const addOrUpdateTemplate = async (req, res) => {
         name: templateData.name,
         pageCount: templateData.pageCount,
         typeOption: templateData.typeOption,
-        // rollNumberRange: templateData.rollNumberRange,
+        patternDefinition: templateData.patternDefinition,
+        blankDefination: templateData.blankDefination,
+        isPermittedToEdit: templateData.isPermittedToEdit,
       });
 
       // Delete existing metadata and images
@@ -115,7 +116,9 @@ const addOrUpdateTemplate = async (req, res) => {
         TempleteType: "Data Entry",
         pageCount: templateData.pageCount,
         typeOption: templateData.typeOption,
-        // rollNumberRange: templateData.rollNumberRange,
+        patternDefinition: templateData.patternDefinition,
+        blankDefination: templateData.blankDefination,
+        isPermittedToEdit: templateData.isPermittedToEdit,
       });
     }
 

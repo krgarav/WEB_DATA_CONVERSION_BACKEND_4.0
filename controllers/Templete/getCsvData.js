@@ -1,62 +1,32 @@
 const XLSX = require("xlsx");
 const fs = require("fs");
 const path = require("path");
-const { Parser } = require("json2csv");
 const Files = require("../../models/TempleteModel/files");
-const RowIndexData = require("../../models/TempleteModel/rowIndexData");
 const Templete = require("../../models/TempleteModel/templete");
-// const Assigndata = require("../../models/TempleteModel/assigndata");
+const FormCheckedData = require("../../models/TempleteModel/formcheckeddata");
+const MetaData = require("../../models/TempleteModel/metadata");
+const { Op } = require("sequelize");
+
+const escapeRegExp = (string) => {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+};
 
 const getCsvData = async (req, res, next) => {
   try {
     const fileId = req.body?.taskData?.fileId;
+
     if (!fileId) {
       return res.status(400).json({ error: "File ID not provided" });
     }
 
+    // Fetch file data
     const fileData = await Files.findOne({
       where: { id: fileId },
       include: [
-        {
-          model: Templete,
-          attributes: {
-            include: ["pageCount"], // Specify the fields to be excluded
-          },
-        },
+        { model: Templete, attributes: ["pageCount", "patternDefinition"] },
       ],
     });
 
-    // console.log(
-    //   fileData.templete.pageCount,
-    //   ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    // );
-
-    const extraImageColCount = fileData.templete.pageCount;
-
-    const rowIndexdata = await RowIndexData.findOne({
-      where: { assigndatumId: req.body.taskData.id },
-    });
-
-    let newRowIndexdata; // Declaring the variable outside the if block to ensure its scope
-
-    if (!rowIndexdata) {
-      // If rowIndexData is falsey, it means no entry was found, so we create a new one
-      try {
-        newRowIndexdata = await RowIndexData.create({
-          assigndatumId: req.body.taskData.id,
-          // Add other properties you need to create here
-        });
-        // Handle success
-        // console.log("New RowIndexData created:", newRowIndexdata);
-      } catch (error) {
-        // Handle error
-        // console.error("Error creating RowIndexData:", error);
-        // You can also throw the error to pass it to the calling function for further handling
-        throw error;
-      }
-    }
-
-    // console.log(">>>>>>>>>>>>>>>>>>>>", rowIndexdata);
     if (!fileData) {
       return res.status(404).json({ error: "File not found" });
     }
@@ -65,9 +35,10 @@ const getCsvData = async (req, res, next) => {
     const filePath = path.join(__dirname, "../../csvFile", filename);
 
     if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ error: "File not found" });
+      return res.status(404).json({ error: "CSV file not found" });
     }
 
+    // Read and parse CSV file
     let workbook, worksheet;
     try {
       workbook = XLSX.readFile(filePath);
@@ -78,15 +49,13 @@ const getCsvData = async (req, res, next) => {
       return res.status(500).json({ error: "Error reading CSV file" });
     }
 
-    const { min, max, conditions } = req.body?.taskData || {};
+    const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+    const { min, max } = req.body.taskData || {};
     const minIndex = parseInt(min);
     const maxIndex = parseInt(max);
 
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-      defval: "",
-      // header: 1,
-    });
-
+    // Validate min and max indices
     if (
       isNaN(minIndex) ||
       isNaN(maxIndex) ||
@@ -99,14 +68,14 @@ const getCsvData = async (req, res, next) => {
       return res.status(400).json({ error: "Invalid min or max value" });
     }
 
-    const imgageColNameFinder = Object.values(jsonData[0]);
-
+    // Determine image column keys
+    const imageColNameFinder = Object.values(jsonData[0]);
     let imageColNameContainer = [];
     let count = 1;
 
     while (true) {
       const imageName = `Image${count}`;
-      if (imgageColNameFinder.includes(imageName)) {
+      if (imageColNameFinder.includes(imageName)) {
         imageColNameContainer.push(imageName);
         count++;
       } else {
@@ -121,122 +90,147 @@ const getCsvData = async (req, res, next) => {
       for (const [key, value] of Object.entries(jsonData[0])) {
         if (value === imageName) {
           imageColKeyContainer.push(key);
-          break; // Found the key for the current imageName, move to the next imageName
+          break;
         }
       }
     });
 
-    function isBlankOrSpecial(obj, conditions, checkBeforeThisKey) {
-      const blankCount = conditions.Blank || 0;
-      const includeStar = conditions.Pattern || false;
-      const includeAllData = conditions.AllData || false;
+    const patternDefinition = fileData.templete.patternDefinition;
+    const blankDefination = fileData.templete.blankDefination;
 
-      // Determine the index of checkBeforeThisKey in the object's keys
-      const keys = Object.keys(obj);
-      const checkBeforeIndex = keys.indexOf(checkBeforeThisKey);
+    const legalCheckData = await MetaData.findAll({
+      where: {
+        [Op.and]: [
+          { templeteId: fileData.templeteId },
+          { fieldType: "formField" },
+        ],
+      },
+    });
 
-      // Filter keys to exclude the checkBeforeThisKey and all keys after it
-      const keysToCheck =
-        checkBeforeIndex !== -1 ? keys.slice(0, checkBeforeIndex) : keys;
+    const resultLegalData = legalCheckData.map((item) => ({
+      attribute: item.attribute,
+      dataFieldType: item.dataFieldType,
+      fieldRange: item.fieldRange,
+      fieldLength: item.fieldLength,
+    }));
 
-      // Count blank and space occurrences only for keys before checkBeforeThisKey
-      const blankAndSpaceCount = keysToCheck.reduce(
-        (count, key) => {
-          const value = obj[key];
-          if (typeof value === "string") {
-            if (value.trim() === "" || value === "BLANK") {
-              count.blank += 1;
-            }
-            if (value.includes(" ")) {
-              count.space += 1;
-            }
-          }
-          return count;
-        },
-        { blank: 0, space: 0 }
-      );
+    let definedPattern;
 
-      const totalOccurrences =
-        blankAndSpaceCount.blank + blankAndSpaceCount.space;
-
-      // Function to check if any value meets the criteria in the object before checkBeforeThisKey
-      const hasDesiredValue = () => {
-        return keysToCheck.some((key) => {
-          const value = obj[key];
-          if (typeof value === "string") {
-            // Check if trimmed value is empty or equals "BLANK"
-            if (value.trim() === "" || value === "BLANK") {
-              return true;
-            }
-            // Check if value includes conditions.Pattern
-            if (value.includes(conditions.Pattern)) {
-              return true;
-            }
-            // Check if value has spaces
-            if (value.includes(" ")) {
-              return true;
-            }
-          }
-          return false;
-        });
-      };
-
-      // Check includeAllData condition
-      if (includeAllData) {
-        return hasDesiredValue();
-      }
-
-      // Check includeStar condition only before checkBeforeThisKey
-      if (includeStar) {
-        const hasStar = keysToCheck.some(
-          (key) => typeof obj[key] === "string" && obj[key].includes(conditions.Pattern)
-        );
-
-        // Check if blankCount condition is met only before checkBeforeThisKey
-        if (blankCount > 0) {
-          return hasStar || totalOccurrences >= blankCount;
-        }
-        return hasStar;
-      }
-
-      // Check blankCount condition only before checkBeforeThisKey
-      if (blankCount > 0) {
-        return totalOccurrences >= blankCount;
-      }
-
-      return false;
+    try {
+      definedPattern = new RegExp(escapeRegExp(patternDefinition));
+    } catch (e) {
+      console.error("Invalid regular expression pattern:", e);
+      return res
+        .status(400)
+        .json({ error: "Invalid pattern definition in database" });
     }
 
-    const filteredData = [];
+    // Compile conditions from form checked data
+    const colConditions = await FormCheckedData.findAll({
+      where: { fileID: fileId },
+    });
 
+    const colConditionsKeyValue = await FormCheckedData.findAll({
+      where: { fileID: fileId },
+      attributes: ["key", "value"],
+    });
+
+    // Map key and value pairs
+    const keyValuePairArray = colConditionsKeyValue.map(({ key, value }) => ({
+      csvHeaderkey: key,
+      userKey: value,
+    }));
+
+    // Function to check conditions
+    const conditionFunc = (obj, legal, blank, pattern) => {
+      const isBlank = (value) => value === blankDefination;
+
+      const matchesPattern = (value) => definedPattern.test(value);
+
+      const checkNumberRange = (value, range) => {
+        if (!value || isNaN(value)) return false;
+        const [min, max] = range.split("--").map(Number);
+        const numValue = Number(value);
+        return numValue >= min && numValue <= max;
+      };
+
+      const checkFieldLength = (value, length) => {
+        if (!value) return false;
+        if (typeof value !== "string") value = String(value);
+        return value.length <= Number(length);
+      };
+
+      for (const key in obj) {
+        if (key === imageColKeyContainer[imageColKeyContainer.length - 1]) {
+          break; // Stop at the last key in imageColKeyContainer
+        }
+
+        const value = obj[key];
+
+        if (blank && isBlank(value)) {
+          return true;
+        }
+
+        if (pattern && matchesPattern(value)) {
+          return true;
+        }
+
+        if (legal) {
+          const matchingPair = keyValuePairArray.find(
+            (pair) => pair.userKey === key
+          );
+
+          if (matchingPair) {
+            const { csvHeaderkey } = matchingPair;
+            const attributeInfo = resultLegalData.find(
+              (item) => item.attribute === csvHeaderkey
+            );
+
+            if (attributeInfo) {
+              const { dataFieldType, fieldRange, fieldLength } = attributeInfo;
+
+              if (dataFieldType === "number") {
+                if (!checkNumberRange(value, fieldRange)) {
+                  return true;
+                }
+                if (!checkFieldLength(value, fieldLength)) {
+                  return true;
+                }
+              } else if (dataFieldType === "text") {
+                if (!checkFieldLength(value, fieldLength)) {
+                  return true;
+                }
+              }
+            }
+          }
+        }
+      }
+      return false;
+    };
+
+    // Filter data based on conditions
+    const filteredData = [];
     const minToMaxData = jsonData.slice(minIndex, maxIndex + 1);
 
     minToMaxData.forEach((obj, index) => {
-      const conditionCheck = isBlankOrSpecial(
-        obj,
-        conditions,
-        imageColKeyContainer[0]
-      );
-      if (conditionCheck) {
-        // Attach rowIndex to the object and add it to filteredData
-        filteredData.push({ ...obj, rowIndex: minIndex - 1 + index });
+      const conditions = colConditions[index];
+
+      if (
+        conditions &&
+        conditionFunc(
+          obj,
+          conditions.legal,
+          conditions.blank,
+          conditions.pattern
+        )
+      ) {
+        filteredData.push({ ...obj, rowIndex: minIndex + index });
       }
     });
 
-    if (filteredData.length === 0) {
-      return res.status(404).json({ error: "No data matching the conditions" });
-    }
-
+    // Return filtered data with header row
     filteredData.unshift(jsonData[0]);
-
-    // console.log(filteredData[3])
-
-    res.status(200).json({
-      filteredData,
-      rowIndexdata: rowIndexdata === null ? newRowIndexdata : rowIndexdata,
-    });
-
-    // res.status(200).json(checkUntillThisKey );
+    res.status(200).json(filteredData);
   } catch (error) {
     console.error("Error handling data:", error);
     res.status(500).json({ error: "Internal server error" });
