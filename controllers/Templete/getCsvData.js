@@ -228,6 +228,10 @@ const getCsvData = async (req, res, next) => {
       }
     });
 
+    if(filteredData.length === 0){
+      return res.status(500).json({ error: "No Matching Data Found" });
+    }
+
     // Return filtered data with header row
     filteredData.unshift(jsonData[0]);
     res.status(200).json(filteredData);
