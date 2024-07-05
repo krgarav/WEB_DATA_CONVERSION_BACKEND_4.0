@@ -23,8 +23,8 @@ const upload = multer({
     limits: undefined
 }).fields([
     { name: "firstInputCsvFile", maxCount: 1 },
-    { name: "secondInputCsvFile", maxCount: 1 },
-    { name: 'zipImageFile', maxCount: 1 }
+    // { name: "secondInputCsvFile", maxCount: 1 },
+    // { name: 'zipImageFile', maxCount: 1 }
 ]);
 const uploadCsv = async (req, res, next) => {
     const userPermissions = req.permissions
