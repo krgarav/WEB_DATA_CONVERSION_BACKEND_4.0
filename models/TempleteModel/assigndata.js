@@ -3,7 +3,6 @@ const Sequelize = require("sequelize");
 const sequelize = require("../../utils/database");
 
 const Assigndata = sequelize.define("assigndata", {
-
   userId: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -16,7 +15,11 @@ const Assigndata = sequelize.define("assigndata", {
     type: Sequelize.STRING,
     allowNull: false,
   },
-
+  taskName: {
+    type: Sequelize.STRING,
+    allowNull: true,
+    // defaultValue:null,
+  },
   max: {
     type: Sequelize.STRING,
     allowNull: false,
@@ -36,6 +39,10 @@ const Assigndata = sequelize.define("assigndata", {
     type: Sequelize.STRING,
     allowNull: false,
   },
+  csvFilePath : {
+    type : Sequelize.STRING,
+  }
+  ,
   errorFilePath: {
     type: Sequelize.STRING,
   },

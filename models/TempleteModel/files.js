@@ -9,7 +9,7 @@ const Files = sequelize.define("filedata", {
   //   autoIncrement: true,
   //   allowNull: false,
   //   primaryKey: true,
-  // },
+  // }, 
   csvFile: {
     type: Sequelize.STRING,
     defaultValue: null,

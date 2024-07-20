@@ -12,10 +12,6 @@ const Templete = sequelize.define("templetes", {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  TempleteType: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
   pageCount: {
     type: Sequelize.INTEGER,
   },

@@ -1,13 +1,15 @@
 const Assigndata = require("../../models/TempleteModel/assigndata");
 const Template = require("../../models/TempleteModel/templete");
+const groupByPrimaryKey = require("../../services/groupingCsvData")
 const assignTask = async (req, res, next) => {
   const { assignedUsers, templateName } = req.body;
 
   try {
-    const {id} = await Template.create({
-      name: templateName,
-      TempleteType: "CSVCompare",
-    });
+    
+    // const {id} = await Template.create({
+    //   name: templateName,
+    //   TempleteType: "CSVCompare",
+    // });
     const creationPromises = assignedUsers.map(async (task) => {
       const {
         userId,
@@ -16,22 +18,27 @@ const assignTask = async (req, res, next) => {
         min,
         moduleType,
         correctedFilePath,
+        csvFilePath,
+        templeteId,
         errorFilePath,
         imageDirectoryPath,
       } = task;
 
       await Assigndata.create({
         userId: userId,
-        templeteId: id,
+        templeteId: templeteId,
         fileId: fileId,
         max: max,
         min: min,
+        taskName: templateName,
         currentIndex: min,
         moduleType: moduleType,
+        csvFilePath: csvFilePath,
         correctedCsvFilePath: correctedFilePath,
         errorFilePath: errorFilePath,
         imageDirectoryPath: imageDirectoryPath,
       });
+
     });
 
     await Promise.all(creationPromises);

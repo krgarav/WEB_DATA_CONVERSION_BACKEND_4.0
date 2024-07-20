@@ -14,7 +14,8 @@ const escapeRegExp = (string) => {
 const getCsvData = async (req, res, next) => {
   try {
     const fileId = req.body?.taskData?.fileId;
-
+    // console.log(req.body.taskData.fileId,"------------------")
+    // console.log(req.body?.taskData)
     if (!fileId) {
       return res.status(400).json({ error: "File ID not provided" });
     }
@@ -72,7 +73,7 @@ const getCsvData = async (req, res, next) => {
     const imageColNameFinder = Object.values(jsonData[0]);
     let imageColNameContainer = [];
     let count = 1;
-
+    
     while (true) {
       const imageName = `Image${count}`;
       if (imageColNameFinder.includes(imageName)) {
