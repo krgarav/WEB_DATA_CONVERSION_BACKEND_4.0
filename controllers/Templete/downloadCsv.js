@@ -19,8 +19,9 @@ const downloadCsv = async (req, res) => {
     if (!fileData) {
       return res.status(404).json({ error: "File not found" });
     }
-
+    console.log(fileData)
     const originalFilename = fileData.csvFile;
+    console.log(originalFilename)
     const originalFilePath = path.join(
       __dirname,
       "../../csvFile",

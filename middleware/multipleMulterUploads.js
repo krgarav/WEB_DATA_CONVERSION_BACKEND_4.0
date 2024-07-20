@@ -45,20 +45,22 @@ const uploadCsv = async (req, res, next) => {
 
         // Access uploaded files using req.files
         const firstInputCsvFile = req.files["firstInputCsvFile"] ? req.files["firstInputCsvFile"][0] : null;
-        const secondInputCsvFile = req.files["secondInputCsvFile"] ? req.files["secondInputCsvFile"][0] : null;
-        const zipImageFile = req.files["zipImageFile"] ? req.files["zipImageFile"][0] : null;
-        const zipfileName = zipImageFile.originalname;
+        // const secondInputCsvFile = req.files["secondInputCsvFile"] ? req.files["secondInputCsvFile"][0] : null;
+        // const zipImageFile = req.files["zipImageFile"] ? req.files["zipImageFile"][0] : null;
+        // const zipfileName = zipImageFile.originalname;
 
-        const uploadDate = new Date();
-        const omrImagesZipDir = path.join(__dirname, "../", "COMPARECSV_FILES", 'OmrImagesZipfile');
-        const omrImages = path.join(__dirname, "../", "COMPARECSV_FILES", 'OmrImages', `Images_${formatDate(uploadDate)}`);
-
-        if (!fs.existsSync(omrImagesZipDir)) {
-            fs.mkdirSync(omrImagesZipDir, { recursive: true });
-        }
-        if (!fs.existsSync(omrImages)) {
-            fs.mkdirSync(omrImages, { recursive: true });
-        }
+        // const uploadDate = new Date();
+        // const omrImagesZipDir = path.join(__dirname, "..", "extractedFiles", `${FormData(zipImageFile)}`);
+        // console.log(omrImagesZipDir,"omrImages")
+        
+        // const omrImages = path.join(__dirname, "../");
+        // console.log(omrImages,"omrImages")
+        // if (!fs.existsSync(omrImagesZipDir)) {
+        //     fs.mkdirSync(omrImagesZipDir, { recursive: true });
+        // }
+        // if (!fs.existsSync(omrImages)) {
+        //     fs.mkdirSync(omrImages, { recursive: true });
+        // }
 
         // // Function to extract the uploaded zip file
         // const extractZipFile = (zipFilePath) => {
@@ -100,46 +102,47 @@ const uploadCsv = async (req, res, next) => {
             });
         };
 
-        if (zipImageFile) {
+        // if (zipImageFile) {
 
-            const destinationPath = path.join(omrImagesZipDir, zipfileName);
-            // Create a read stream for the uploaded file
-            const readStream = fs.createReadStream(zipImageFile.path);
+        //     // const destinationPath = path.join(omrImagesZipDir, zipfileName);
+        //     const destinationPath = path.join(omrImagesZipDir);
+        //     // Create a read stream for the uploaded file
+        //     const readStream = fs.createReadStream(zipImageFile.path);
 
-            // Create a write stream to save the zip image file
-            const writeStream = fs.createWriteStream(destinationPath);
+        //     // Create a write stream to save the zip image file
+        //     const writeStream = fs.createWriteStream(destinationPath);
 
-            // Pipe the read stream (uploaded file) to the write stream
-            readStream.pipe(writeStream);
+        //     // Pipe the read stream (uploaded file) to the write stream
+        //     readStream.pipe(writeStream);
 
-            // Listen for the 'finish' event to know when the file write is complete
-            writeStream.on('finish', async () => {
-                console.log('Zip image file saved successfully.');
-                // `ZipImage_${formatDate(uploadDate)}`
-                try {
-                    // Extract the zip file
-                    await extractZipFile(destinationPath);
-                    // Call next middleware or continue with your logic here
-                } catch (error) {
-                    // Handle error if extraction fails
-                }
-            });
+        //     // Listen for the 'finish' event to know when the file write is complete
+        //     writeStream.on('finish', async () => {
+        //         console.log('Zip image file saved successfully.');
+        //         // `ZipImage_${formatDate(uploadDate)}`
+        //         try {
+        //             // Extract the zip file
+        //             await extractZipFile(destinationPath);
+        //             // Call next middleware or continue with your logic here
+        //         } catch (error) {
+        //             // Handle error if extraction fails
+        //         }
+        //     });
 
-            // Listen for any errors during the file write process
-            writeStream.on('error', (error) => {
-                console.error('Error saving zip image file:', error);
-                // Handle the error appropriately
-            });
-        } else {
-            console.error('No zip image file uploaded.');
-            // Handle the case where no zip image file is uploaded
-        }
+        //     // Listen for any errors during the file write process
+        //     writeStream.on('error', (error) => {
+        //         console.error('Error saving zip image file:', error);
+        //         // Handle the error appropriately
+        //     });
+        // } else {
+        //     console.error('No zip image file uploaded.');
+        //     // Handle the case where no zip image file is uploaded
+        // }
 
         req.uploadedFiles = {
             firstInputCsvFile,
-            secondInputCsvFile,
-            zipfileName,
-            omrImages
+            // secondInputCsvFile,
+            // zipfileName,
+            // omrImages
         };
         next();
     });

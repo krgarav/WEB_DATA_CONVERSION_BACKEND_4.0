@@ -11,7 +11,7 @@ const getImage = async (req, res, next) => {
 
   try {
     const { imageNameArray, id, rowIndex } = req.body;
-
+    // console.log(imageNameArray, id, rowIndex);
     if (
       !imageNameArray ||
       !Array.isArray(imageNameArray) ||
@@ -32,7 +32,7 @@ const getImage = async (req, res, next) => {
 
     assigndataInstance.currentIndex = rowIndex;
     assigndataInstance.save();
-    
+
     const arrayOfImages = [];
 
     for (const imageName of imageNameArray) {
@@ -47,7 +47,7 @@ const getImage = async (req, res, next) => {
         "extractedFiles",
         imageName
       );
-
+      // console.log(sourceFilePath, "------");
       try {
         await fs.access(sourceFilePath); // Check if the file exists
 
