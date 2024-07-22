@@ -22,12 +22,22 @@ const MappedData = require("./models/TempleteModel/mappedData");
 const builtPath = path.join(__dirname, "./build");
 
 //middlewares
-app.use(cors());
+app.use(cors({
+  exposedHeaders: ['X-Original-Filename']
+}));
 app.use(express.json());
 app.use(bodyParser.json({ extended: false }));
 app.use(bodyParser.urlencoded({ extended: false }));
 
-
+const imageDirectoryPath = path.join(
+  __dirname,
+  "../",
+  "COMPARECSV_FILES",
+  "OmrImages",
+  "Images_2024-05-04T04-38-30-972Z/005.jpg"
+);
+// Serve static files from the 'extractedFiles' directory
+app.use("/images", express.static(imageDirectoryPath));
 app.use("/images", express.static(path.join(__dirname, "extractedFiles")));
 app.use(express.static(builtPath));
 
@@ -128,21 +138,6 @@ MappedData.belongsTo(Templete, {
   },
   onUpdate: "CASCADE",
 });
-
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
-
-// sequelize
-//   .sync({ force: false })
-//   .then(() => {
-//     app.listen(PORT, () => {
-//       console.log(`Server is running on port ${PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.error("Unable to connect to the database:", err);
-//   });
 
 sequelize
   .sync({ force: false })

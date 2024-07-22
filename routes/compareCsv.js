@@ -14,13 +14,15 @@ const submitTask = require("../controllers/CompareCsv/submitTask");
 const blank = require("../controllers/CompareCsv/blank");
 const { getUploadedFilesByTemplateId } = require("../controllers/CompareCsv/getUploadedFilesByTemplateId");
 const downloadCorrectedCsv = require("../controllers/CompareCsv/downloadCorrectedCsv");
+const downlaodErrorCorrectedFile = require("../controllers/CompareCsv/downlaodErrorCorrectedFile");
 
 const router = express.Router();
 
 router.post("/uploadcsv", authMiddleware, multerUpload, uploadCsv);
 router.post("/compareData", authMiddleware, multipleMulterUpload, compareCsv)
 router.get("/compareAssigned/:taskId", authMiddleware, userData);
-router.get("/download/correctedCsv/:taskId",authMiddleware, downloadCorrectedCsv); //file Id
+router.get("/download/correctedCsv/:taskId",authMiddleware, downloadCorrectedCsv); 
+router.get("/download/errorCorrectedCsv/:taskId",authMiddleware, downlaodErrorCorrectedFile); 
 router.post("/saveAnswer/:taskId", authMiddleware, saveData);
 router.post("/assign", authMiddleware, assignTask);
 router.post("/getCompareCsvData/:taskId", authMiddleware, getCompareCsvData);

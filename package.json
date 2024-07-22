@@ -1,35 +1,35 @@
 {
-  "name": "back-end",
-  "version": "2.1.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "nodemon server.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "adm-zip": "^0.5.12",
-    "bcrypt": "^5.1.1",
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "csv-parser": "^3.0.0",
-    "csv-writer": "^1.6.0",
-    "express": "^4.19.2",
-    "fast-csv": "^5.0.1",
-    "jimp": "^0.22.12",
-    "json2csv": "^6.0.0-alpha.2",
-    "jsonwebtoken": "^9.0.2",
-    "jszip": "^3.10.1",
-    "multer": "^1.4.5-lts.1",
-    "mysql2": "^3.9.4",
-    "node-unrar-js": "^2.0.2",
-    "nodemon": "^3.1.0",
-    "sequelize": "^6.37.3",
-    "sharp": "^0.33.3",
-    "unzipper": "^0.11.5",
-    "xlsx": "^0.18.5"
+    "name": "back-end",
+    "version": "2.1.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+      "start": "nodemon server.js"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+      "adm-zip": "^0.5.12",
+      "bcrypt": "^5.1.1",
+      "bcryptjs": "^2.4.3",
+      "body-parser": "^1.20.2",
+      "cors": "^2.8.5",
+      "csv-parser": "^3.0.0",
+      "csv-writer": "^1.6.0",
+      "express": "^4.19.2",
+      "fast-csv": "^5.0.1",
+      "jimp": "^0.22.12",
+      "json2csv": "^6.0.0-alpha.2",
+      "jsonwebtoken": "^9.0.2",
+      "jszip": "^3.10.1",
+      "multer": "^1.4.5-lts.1",
+      "mysql2": "^3.9.4",
+      "node-unrar-js": "^2.0.2",
+      "nodemon": "^3.1.0",
+      "sequelize": "^6.37.3",
+      "sharp": "^0.33.3",
+      "unzipper": "^0.11.5",
+      "xlsx": "^0.18.5"
+    }
   }
-}
