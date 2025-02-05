@@ -1,6 +1,7 @@
 const { where } = require("sequelize");
 const Assigndata = require("../../models/TempleteModel/assigndata");
 const Template = require("../../models/TempleteModel/templete");
+const groupByPrimaryKey = require("../../services/groupingCsvData")
 const User = require("../../models/User");
 
 const assignedTask = async (req, res) => {
@@ -9,14 +10,15 @@ const assignedTask = async (req, res) => {
 
     const mappedAssignedData = await Promise.all(
       assignData.map(async (data) => {
-        const { id, userId, templeteId, max, min, taskStatus, moduleType } =
+        const { id, userId,taskName, templeteId, max, min, taskStatus, moduleType } =
           data;
         const user = await User.findOne({ where: { id: userId } });
-        const template = await Template.findOne({ where: { id: templeteId } });
+        // const template = await Template.findOne({ where: { id: templeteId } });
+
         return {
           userName: user.userName,
-          name: template.name,
-          TemplateType: template.TempleteType,
+          taskName: taskName,
+          moduleType: moduleType,
           max,
           min,
           taskStatus,

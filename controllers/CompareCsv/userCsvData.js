@@ -3,6 +3,9 @@ const csv = require("csv-parser");
 const fs = require("fs");
 const path = require("path");
 const { Parser } = require('json2csv');
+const getAllDirectories = require("../../services/directoryFinder")
+const groupByPrimaryKey = require("../../services/groupingCsvData")
+
 
 function convertJSONToCSV(jsonData) {
   try {
@@ -33,10 +36,12 @@ function readCSVAndConvertToJSON(filePath) {
       });
   });
 }
+
 exports.userData = async (req, res) => {
   try {
     const taskId = req.params.taskId;
     const task = await Assigndata.findOne({ where: { id: taskId } });
+    
     const {
       max,
       min,
@@ -48,45 +53,52 @@ exports.userData = async (req, res) => {
     const { currindex } = req.headers;
 
     const errorJsonFile = await readCSVAndConvertToJSON(errorFilePath);
-    // console.log(errorJsonFile.length);
-    // const accessibleErrorJsonFile = errorJsonFile.splice(min-1,max);
     const sendFile = errorJsonFile[currindex - 1];
-    // const sendFileData = sendFile[0];
     const imageName = sendFile.IMAGE_NAME;
+    
+    let imagePath = path.join(__dirname, "../", "../", "extractedFiles", imageDirectoryPath);
+    const imageFolders = getAllDirectories(imagePath);
 
-    const image = path.join(imageDirectoryPath, imageName);
-    // Read the image file and convert it to base64
+    imageFolders.forEach(folder => {
+      imagePath = path.join(imagePath, folder);
+    });
+
+    const image = path.join(imagePath, imageName);
+
     fs.readFile(image, { encoding: "base64" }, (err, data) => {
       if (err) {
         console.error("Error reading image:", err);
-
         return res.status(500).send({ message: "Error reading image" });
       }
-      // Construct the base64 URL
+
       const base64URL = `data:image/jpeg;base64,${data}`;
 
-      // Send the response with the base64 URL
+      // Group data by primary key
+      const groupedData = groupByPrimaryKey(errorJsonFile);
+      // console.log(groupedData,"groupdata")
       res.status(201).send({
-        message: "Task found succesfully",
+        message: "Task found successfully",
         data: sendFile,
         currentIndex: currentIndex,
         imageURL: base64URL,
         min: min,
         max: max,
+        // csvFile: csvFile,
+        groupedData: groupedData  , // Include grouped data in response
       });
     });
   } catch (err) {
     console.error(err);
+    res.status(500).send({ message: "Server error" });
   }
 };
-
 exports.saveData = async (req, res) => {
   try {
     const { taskId } = req.params;
     const { column_name, corrected_value, currentIndexValue } = req.body;
     const task = await Assigndata.findOne({ where: { id: taskId } });
 
-    if (task) {
+    if (task) { 
       const { errorFilePath, correctedCsvFilePath, primary_key, currentIndex } =
         task;
       task.currentIndex = +currentIndexValue;

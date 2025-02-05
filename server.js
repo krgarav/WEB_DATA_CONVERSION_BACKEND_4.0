@@ -22,7 +22,9 @@ const MappedData = require("./models/TempleteModel/mappedData");
 const builtPath = path.join(__dirname, "./build");
 
 //middlewares
-app.use(cors());
+app.use(cors({
+  exposedHeaders: ['X-Original-Filename']
+}));
 app.use(express.json());
 app.use(bodyParser.json({ extended: false }));
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -136,21 +138,6 @@ MappedData.belongsTo(Templete, {
   },
   onUpdate: "CASCADE",
 });
-
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`);
-// });
-
-// sequelize
-//   .sync({ force: false })
-//   .then(() => {
-//     app.listen(PORT, () => {
-//       console.log(`Server is running on port ${PORT}`);
-//     });
-//   })
-//   .catch((err) => {
-//     console.error("Unable to connect to the database:", err);
-//   });
 
 sequelize
   .sync({ force: false })

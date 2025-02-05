@@ -113,7 +113,7 @@ const addOrUpdateTemplate = async (req, res) => {
       // Create a new template
       template = await Templete.create({
         name: templateData.name,
-        TempleteType: "Data Entry",
+        // TempleteType: "Data Entry",
         pageCount: templateData.pageCount,
         typeOption: templateData.typeOption,
         patternDefinition: templateData.patternDefinition,
