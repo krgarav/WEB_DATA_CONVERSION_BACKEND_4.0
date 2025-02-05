@@ -75,7 +75,7 @@ const getCsvCompareData = async (req, res) => {
     if (!currentTask) {
       return res.status(404).json({ message: "Task not found" });
     }
-  
+
     await currentTask.update({ currentIndex });
 
     fs.createReadStream(absoluteFilePath)
@@ -87,7 +87,7 @@ const getCsvCompareData = async (req, res) => {
             templeteId: taskTempleteId,
           },
         });
-      
+
         const keyValuePair = mappedData.map((item) => ({
           [item.key]: item.value,
         }));
@@ -127,9 +127,10 @@ const getCsvCompareData = async (req, res) => {
           imageFile = path.join(imageFile, folder);
         });
 
-        const prefixToRemove ="D:\\Omr\\CSV\\WEB_DATA_CONVERSION_BACKEND_4.0\\extractedFiles";
-        const result = imageFile.replace(prefixToRemove, "");
+        // const prefixToRemove ="D:\\Omr\\CSV\\WEB_DATA_CONVERSION_BACKEND_4.0\\extractedFiles";
+        // const result = imageFile.replace(prefixToRemove, "");
 
+        const result = imageFile.split("extractedFiles\\")[1];
         res.status(200).json({
           message: "Data found",
           data: {

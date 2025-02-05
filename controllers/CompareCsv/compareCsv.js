@@ -68,6 +68,7 @@ const compareCsv = async (req, res) => {
     const f1 = await csvToJson(firstFilePath);
     const f2 = await csvToJson(secondFilePath);
     console.log(f1,"------")
+    f2.splice(0,1);
     // console.log(primaryKey, "primary key");
     const diff = [];
 
